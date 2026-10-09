@@ -51,7 +51,7 @@ test('el visor se encuadra al girar, acepta solo sus marcadores y libera la cám
     window.dispatchEvent(event);
   };
   assert.equal(container.hidden, false);
-  assert.match(frame.src, /\/ar\.html$/);
+  assert.match(new URL(frame.src).pathname, /\/ar\.html$/);
   assert.equal(frame.allow, 'camera; autoplay');
   message({type:'ready', width:480, height:640});
   assert.equal(ready, 1);

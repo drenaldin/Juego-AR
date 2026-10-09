@@ -1,5 +1,6 @@
-import { newSequence, shuffled, guardianCorrect } from './engine.js';
-import { DOORS, OBJECTS } from './story.js';
+import { newSequence, shuffled, guardianCorrect } from './engine.js?v=4';
+import { DOORS, OBJECTS } from './story.js?v=4';
+import { MAZE_SIZE, MAZE_MAPS, createMaze, validMaze, mazeNeighbor, moveMaze } from './maze.js?v=4';
 
 // Cada montaje devuelve su limpieza: salir de una pantalla cancela sus temporizadores.
 export function mountPuzzle(host, ctx) {
@@ -140,49 +141,64 @@ export function mountPuzzle(host, ctx) {
     }));
   }
 
-  function balancePuzzle() {
-    state.order ??= shuffled(OBJECTS);
-    state.weighings ??= [];
-    save();
-    const options = OBJECTS.map(o => `<option value="${o}">${o}</option>`).join('');
-    host.innerHTML = `<div class="field-row"><label>Izquierda<select id="balance-left">${options}</select></label><span>vs.</span><label>Derecha<select id="balance-right">${options}</select></label></div><button class="secondary" id="weigh">Comparar pesos</button><p class="sequence-status" id="weigh-count"></p><ol class="balance-history" id="weigh-history"></ol><form id="balance-answer" class="combination"><label>De menor a mayor peso</label><div class="field-row">${[0, 1, 2].map(i => `<label>${i + 1}.º<select id="order-${i}">${options}</select></label>`).join('')}</div><button class="primary" type="submit">Comprobar orden</button></form>`;
-    q('#balance-right').value = OBJECTS[1];
-    [0, 1, 2].forEach(i => q(`#order-${i}`).value = OBJECTS[i]);
-    function history() {
-      q('#weigh-history').replaceChildren(...state.weighings.map(text => {
-        const li = document.createElement('li'); li.textContent = text; return li;
-      }));
-      q('#weigh-count').textContent = `Pesadas disponibles: ${3 - state.weighings.length} / 3`;
-      q('#weigh').disabled = state.weighings.length >= 3;
+  function mazePuzzle() {
+    if (!validMaze(state)) {
+      for (const key of Object.keys(state)) delete state[key];
+      Object.assign(state, createMaze());
     }
-    history();
-    button('#weigh', () => {
-      if (state.weighings.length >= 3) return;
-      const left = q('#balance-left').value, right = q('#balance-right').value;
-      if (left === right) { message('Elegí dos objetos diferentes. No gastaste una pesada.'); return; }
-      const leftLighter = state.order.indexOf(left) < state.order.indexOf(right);
-      state.weighings.push(`${left} pesa ${leftLighter ? 'menos' : 'más'} que ${right}.`);
-      effect('balance', leftLighter ? 12 : -12); save(); history();
-    });
-    q('#balance-answer').addEventListener('submit', e => {
-      e.preventDefault();
-      const answer = [0, 1, 2].map(i => q(`#order-${i}`).value);
-      if (new Set(answer).size !== 3) { message('Usá cada objeto una sola vez. No se descontaron puntos.'); return; }
-      if (answer.every((o, i) => o === state.order[i])) {
-        run.lightest = state.order[0]; save();
-        solve(`Orden comprobado, de menor a mayor peso: ${state.order.join(' → ')}.`); return;
+    if (!OBJECTS.includes(state.reward)) state.reward = shuffled(OBJECTS)[0];
+    save();
+    const keyIcon = '<svg viewBox="0 0 24 24" class="maze-key" aria-hidden="true"><circle cx="8" cy="8" r="4"/><path d="m11 11 9 9m-3-3 3-3m-6 0 3-3"/></svg>';
+    host.innerHTML = `<p class="maze-key-status" id="maze-key-status"></p><div class="maze-board" id="maze-board" role="img" tabindex="0"></div><div class="maze-legend" aria-hidden="true"><span><b class="maze-player-icon">●</b> Vos</span><span>${keyIcon} Llave</span><span><b class="maze-exit-icon">⚑</b> Salida</span><span><b class="maze-trap-icon">×</b> Trampa</span></div><div class="maze-controls" role="group" aria-label="Mover la ficha"><button type="button" class="maze-up" data-move="up" aria-label="Mover arriba">↑</button><button type="button" class="maze-left" data-move="left" aria-label="Mover a la izquierda">←</button><button type="button" class="maze-right" data-move="right" aria-label="Mover a la derecha">→</button><button type="button" class="maze-down" data-move="down" aria-label="Mover abajo">↓</button></div><p class="maze-status" id="maze-status" role="status" aria-live="polite"></p><p class="muted maze-keyboard">En computadora también podés usar las flechas del teclado.</p>`;
+    const board = q('#maze-board');
+    const controls = [...host.querySelectorAll('[data-move]')];
+    function draw() {
+      board.innerHTML = [...MAZE_MAPS[state.map].join('')].map((tile, cell) => {
+        const type = tile === '#' ? 'wall' : tile === 'X' ? 'trap' : tile === 'E' ? 'exit' : 'path';
+        const content = cell === state.cell ? '<span class="maze-player-icon">●</span>'
+          : tile === 'K' && !state.hasKey ? keyIcon : tile === 'X' ? '×' : tile === 'E' ? '⚑' : '';
+        return `<span class="maze-cell maze-${type}" aria-hidden="true">${content}</span>`;
+      }).join('');
+      const row = Math.floor(state.cell / MAZE_SIZE) + 1, col = state.cell % MAZE_SIZE + 1;
+      board.setAttribute('aria-label', `Laberinto de 7 filas y 7 columnas. Estás en la fila ${row}, columna ${col}. ${state.hasKey ? 'Tenés la llave: buscá la salida.' : 'Primero buscá la llave.'}`);
+      q('#maze-key-status').textContent = state.hasKey ? 'Llave conseguida. Ahora buscá la salida verde.' : 'Primero la llave dorada; después, la salida verde.';
+      q('#maze-key-status').classList.toggle('has-key', state.hasKey);
+      q('#maze-status').textContent = `Fila ${row} · Columna ${col}`;
+      controls.forEach(control => control.disabled = state.won || mazeNeighbor(state, control.dataset.move) < 0);
+    }
+    function move(direction) {
+      if (disposed || state.won) return;
+      const result = moveMaze(state, direction);
+      if (result === 'win') {
+        run.finalObject = state.reward;
+        solve(`Saliste del laberinto. Objeto para el guardián: ${state.reward}.`);
+        return;
       }
-      state.order = shuffled(OBJECTS); state.weighings = []; save(); history();
-      fail('El orden era incorrecto. Los pesos cambiaron: tenés tres pesadas nuevas. −20 puntos.');
-    });
+      save(); draw();
+      if (result === 'trap') fail('Pisaste una trampa. Volvés al inicio sin la llave. −20 puntos.');
+      else if (result === 'wall') message('Por ahí hay una pared. Probá otra dirección; no perdiste puntos.');
+      else if (result === 'locked') message('La salida está cerrada. Primero agarrá la llave dorada.');
+      else if (result === 'key') message('¡Tenés la llave! Llevala hasta la salida verde.', true);
+      else message('');
+      board.focus({ preventScroll: true });
+    }
+    controls.forEach(control => control.addEventListener('click', () => move(control.dataset.move)));
+    const arrows = { ArrowUp: 'up', ArrowRight: 'right', ArrowDown: 'down', ArrowLeft: 'left' };
+    const keyboard = event => {
+      if (!arrows[event.key]) return;
+      event.preventDefault(); move(arrows[event.key]);
+    };
+    board.addEventListener('keydown', keyboard);
+    q('.maze-controls').addEventListener('keydown', keyboard);
+    draw();
   }
 
   function guardianPuzzle() {
     if (state.penalty) { memoryPuzzle(true); return; }
-    host.innerHTML = `<form id="guardian-answer" class="combination"><label>Hora del reloj<select id="guardian-hour">${Array.from({ length: 12 }, (_, i) => `<option value="${i + 1}">${i + 1}</option>`).join('')}</select></label><label>Símbolo de la puerta<select id="guardian-symbol"><option value="circle">○ Círculo</option><option value="triangle">△ Triángulo</option><option value="diamond">◇ Rombo</option><option value="square">□ Cuadrado</option></select></label><label>Objeto más liviano<select id="guardian-object">${OBJECTS.map(o => `<option value="${o}">${o}</option>`).join('')}</select></label><button class="primary" type="submit">Probar contraseña</button></form>`;
+    host.innerHTML = `<form id="guardian-answer" class="combination"><label>Hora del reloj<select id="guardian-hour">${Array.from({ length: 12 }, (_, i) => `<option value="${i + 1}">${i + 1}</option>`).join('')}</select></label><label>Símbolo de la puerta<select id="guardian-symbol"><option value="circle">○ Círculo</option><option value="triangle">△ Triángulo</option><option value="diamond">◇ Rombo</option><option value="square">□ Cuadrado</option></select></label><label>Objeto de tu última pista<select id="guardian-object">${OBJECTS.map(o => `<option value="${o}">${o}</option>`).join('')}</select></label><button class="primary" type="submit">Probar contraseña</button></form>`;
     q('#guardian-answer').addEventListener('submit', e => {
       e.preventDefault();
-      if (guardianCorrect(q('#guardian-hour').value, q('#guardian-symbol').value, q('#guardian-object').value, run.lightest)) { solve(); return; }
+      if (guardianCorrect(q('#guardian-hour').value, q('#guardian-symbol').value, q('#guardian-object').value, run.finalObject)) { solve(); return; }
       state.wrong = (state.wrong ?? 0) + 1;
       if (state.wrong % 2 === 0) { state.penalty = true; state.sequence = newSequence(3); }
       save(); fail('Contraseña incorrecta. Revisá las pistas. −20 puntos.');
@@ -195,6 +211,6 @@ export function mountPuzzle(host, ctx) {
     button('#return-start', () => solve());
   }
 
-  [keyPuzzle, clockPuzzle, memoryPuzzle, archivePuzzle, balancePuzzle, guardianPuzzle, roomPuzzle, keyPuzzle][stage]();
+  [keyPuzzle, clockPuzzle, memoryPuzzle, archivePuzzle, mazePuzzle, guardianPuzzle, roomPuzzle, keyPuzzle][stage]();
   return () => { disposed = true; cancelTimers(); if (raf !== null) cancelAnimationFrame(raf); host.replaceChildren(); };
 }

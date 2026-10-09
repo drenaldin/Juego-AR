@@ -116,7 +116,7 @@ test('reconocer el marcador apaga la cámara y lleva a la actividad; el siguient
 
 test('guardián abre la nota sin otro escaneo y el cofre vuelve a pedir el marcador 01', async t => {
   const run = createRun('Finalista');
-  Object.assign(run, { stage: 5, solved: [0,1,2,3,4], unlocked: [0,1,2,3,4], lightest: 'Pluma' });
+  Object.assign(run, { stage: 5, solved: [0,1,2,3,4], unlocked: [0,1,2,3,4], finalObject: 'Pluma' });
   const p = await setup(t, [run]);
   p.start('Finalista'); p.camera()(6);
   p.q('#guardian-hour').value = '7';
@@ -139,6 +139,44 @@ test('guardián abre la nota sin otro escaneo y el cofre vuelve a pedir el marca
   p.q('#result-ranking').click();
   assert.equal(p.q('.sidebar').hidden, false);
   assert.match(p.q('#ranking-body').textContent, /Finalista/);
+});
+
+test('retomar la balanza abre el laberinto y su recompensa funciona con el guardián', async t => {
+  const run = createRun('renitos');
+  delete run.finalObject;
+  Object.assign(run, {
+    stage: 4, solved: [0, 1, 2, 3], unlocked: [0, 1, 2, 3, 4], lightest: null,
+    errors: 2, hints: 1, puzzles: { 4: { order: ['Pluma', 'Llave', 'Campana'], weighings: [] } },
+    evidence: [{ stage: 1, text: 'La hora es 7.' }, { stage: 2, text: 'El símbolo es el rombo.' }]
+  });
+  t.mock.method(Math, 'random', () => 0);
+  const p = await setup(t, [run]);
+  p.start('renitos');
+  assert.equal(p.q('#station-title').textContent, 'El laberinto');
+  assert.equal(p.q('iframe'), null);
+  assert.equal(p.q('.scanner-pane').hidden, true);
+  assert.equal(p.saved('renitos').errors, 2);
+  assert.equal(p.saved('renitos').hints, 1);
+  assert.deepEqual(p.saved('renitos').evidence, run.evidence);
+  const route = ['right', 'right', 'down', 'down', 'left', 'left', 'down', 'down', 'right', 'right', 'right', 'right', 'up', 'up', 'up', 'up', 'right', 'right', 'down', 'down'];
+  for (const direction of route) p.q(`[data-move="${direction}"]`).click();
+  p.q('#leave-game').click(); p.start('renitos');
+  assert.equal(p.saved('renitos').puzzles[4].hasKey, true);
+  for (let i = 0; i < 4; i++) p.q('[data-move="down"]').click();
+  const saved = p.saved('renitos');
+  assert.equal(saved.stage, 5);
+  assert.deepEqual(saved.solved, [0, 1, 2, 3, 4]);
+  assert.equal(saved.errors, 2);
+  assert.match(saved.evidence.at(-1).text, new RegExp(`Objeto para el guardián: ${saved.finalObject}`));
+  assert.equal(p.q('iframe'), null);
+  p.camera()(6);
+  p.q('#guardian-hour').value = '7';
+  p.q('#guardian-symbol').value = 'diamond';
+  p.q('#guardian-object').value = saved.finalObject;
+  p.submit('#guardian-answer');
+  assert.equal(p.saved('renitos').stage, 6);
+  assert.equal(p.saved('renitos').errors, 2);
+  assert.ok(p.q('#return-start'));
 });
 
 test('práctica usa el mismo cambio entre escaneo y actividad sin abrir cámara', async t => {

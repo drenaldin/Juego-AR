@@ -8,7 +8,7 @@ export function createRun(name, practice = false, now = Date.now()) {
     id: globalThis.crypto?.randomUUID?.() ?? `${now}-${Math.random().toString(36).slice(2)}`,
     name: cleanName(name), practice, startedAt: now, finishedAt: null,
     stage: 0, solved: [], errors: 0, hints: 0, hintLevels: {}, puzzles: {}, evidence: [],
-    unlocked: [], lightest: null
+    unlocked: [], finalObject: null
   };
 }
 
@@ -71,7 +71,16 @@ export function readStore(storage) {
     const data = JSON.parse(raw);
     if (data.version !== 1 || !data.runs || !Array.isArray(data.records)) throw Error('invalid');
     const clean = emptyStore();
-    for (const [key, run] of Object.entries(data.runs)) if (validRun(run)) clean.runs[key] = run;
+    for (const [key, run] of Object.entries(data.runs)) if (validRun(run)) {
+      // Las partidas que ya resolvieron la antigua balanza conservan su contraseña.
+      if (!run.finalObject && typeof run.lightest === 'string') {
+        run.finalObject = run.lightest;
+        run.evidence = run.evidence.map(clue => clue.stage === 4
+          ? { ...clue, text: `${clue.text} Objeto para el guardián: ${run.finalObject}.` }
+          : clue);
+      }
+      clean.runs[key] = run;
+    }
     clean.records = data.records.filter(r => typeof r.id === 'string' && typeof r.name === 'string' &&
       Number.isFinite(r.score) && Number.isFinite(r.seconds) && Number.isFinite(r.finishedAt) &&
       Number.isInteger(r.errors) && Number.isInteger(r.hints));
@@ -118,6 +127,6 @@ export function newSequence(length = 5) {
   return Array.from({ length }, () => Math.floor(Math.random() * 4));
 }
 
-export function guardianCorrect(hour, symbol, object, lightest) {
-  return Number(hour) === 7 && symbol === 'diamond' && object === lightest;
+export function guardianCorrect(hour, symbol, object, expectedObject) {
+  return typeof expectedObject === 'string' && Number(hour) === 7 && symbol === 'diamond' && object === expectedObject;
 }

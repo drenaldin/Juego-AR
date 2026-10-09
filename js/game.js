@@ -1,7 +1,7 @@
-import { STATIONS } from './story.js';
-import { createRun, cleanName, runKey, elapsedSeconds, scoreRun, unlockMarker, finishStage, useHint, readStore, writeStore, recordResult, leaderboard } from './engine.js';
-import { mountPuzzle } from './puzzles.js';
-import { createCamera } from './camera.js';
+import { STATIONS } from './story.js?v=4';
+import { createRun, cleanName, runKey, elapsedSeconds, scoreRun, unlockMarker, finishStage, useHint, readStore, writeStore, recordResult, leaderboard } from './engine.js?v=4';
+import { mountPuzzle } from './puzzles.js?v=4';
+import { createCamera } from './camera.js?v=4';
 
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];

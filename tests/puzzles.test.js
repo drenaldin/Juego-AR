@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { parseHTML } from 'linkedom';
 import { createRun } from '../js/engine.js';
 import { mountPuzzle } from '../js/puzzles.js';
+import { createMaze } from '../js/maze.js';
 
 function setup(t, stage, state = {}) {
   const { window, document } = parseHTML('<html><body><div id="puzzle"></div></body></html>');
@@ -36,6 +37,7 @@ function setup(t, stage, state = {}) {
     run, q, get solved() { return solved; }, get errors() { return errors; }, get evidence() { return evidence; },
     click(selector) { const node = q(selector); assert.ok(!node.disabled, `${selector} habilitado`); node.click(); },
     submit(selector) { q(selector).dispatchEvent(new window.Event('submit', { cancelable: true })); },
+    key(key) { const event = new window.Event('keydown', { cancelable: true }); event.key = key; q('#maze-board').dispatchEvent(event); },
     frame(time) { now = time; const callback = frame; frame = null; callback?.(time); },
     advance(ms) {
       const target = now + ms;
@@ -87,21 +89,49 @@ test('archivo: un fallo bloquea todos los botones por diez segundos', t => {
   p.advance(1000); p.click('[data-answer="B"]'); assert.equal(p.solved, 1);
 });
 
-test('balanza: tres pesadas, error reinicia y el acierto guarda el objeto liviano', t => {
-  const p = setup(t, 4, { order: ['Pluma', 'Llave', 'Campana'], weighings: [] });
-  for (let i = 0; i < 3; i++) p.click('#weigh');
-  assert.equal(p.q('#weigh').disabled, true);
-  p.submit('#balance-answer'); assert.equal(p.errors, 1);
-  assert.equal(p.run.puzzles[4].weighings.length, 0);
-  assert.equal(p.q('#weigh').disabled, false);
-  p.run.puzzles[4].order.forEach((name, i) => p.q(`#order-${i}`).value = name);
-  p.submit('#balance-answer'); assert.equal(p.solved, 1);
-  assert.equal(p.run.lightest, p.run.puzzles[4].order[0]);
-  assert.match(p.evidence, /Orden comprobado/);
+test('laberinto: las flechas llevan hasta la llave y la salida guarda la pista del guardián', t => {
+  const p = setup(t, 4, {...createMaze(() => 0), reward:'Campana'});
+  p.key('ArrowUp'); assert.equal(p.errors, 0);
+  const route = ['right','right','down','down','left','left','down','down','right','right','right','right','up','up','up','up','right','right','down','down'];
+  for (const direction of route) p.click(`[data-move="${direction}"]`);
+  assert.equal(p.run.puzzles[4].hasKey, true);
+  assert.match(p.q('#maze-key-status').textContent, /Llave conseguida/);
+  for (let i = 0; i < 4; i++) p.click('[data-move="down"]');
+  assert.equal(p.solved, 1);
+  assert.equal(p.run.finalObject, 'Campana');
+  assert.match(p.evidence, /Objeto para el guardián: Campana/);
+  p.key('ArrowLeft'); assert.equal(p.solved, 1);
+});
+
+test('laberinto: una trampa cobra un error y permite volver a intentar', t => {
+  const p = setup(t, 4, {...createMaze(() => 0), cell:29, hasKey:true, reward:'Pluma'});
+  p.click('[data-move="down"]');
+  assert.equal(p.errors, 1);
+  assert.equal(p.run.puzzles[4].cell, 0);
+  assert.equal(p.run.puzzles[4].hasKey, false);
+  assert.equal(p.run.puzzles[4].reward, 'Pluma');
+  p.key('ArrowRight');
+  assert.equal(p.run.puzzles[4].cell, 1);
+  assert.equal(p.errors, 1);
+});
+
+test('laberinto: reemplaza una balanza pendiente sin cobrar errores', t => {
+  const p = setup(t, 4, {order:['Pluma','Llave','Campana'],weighings:[]});
+  assert.equal(p.run.puzzles[4].kind, 'maze');
+  assert.equal(p.run.puzzles[4].order, undefined);
+  assert.equal(p.errors, 0);
+});
+
+test('laberinto: una partida guardada mantiene la llave y el objeto de recompensa', t => {
+  const p = setup(t, 4, {...createMaze(() => 0), cell:20, hasKey:true, reward:'Pluma'});
+  assert.match(p.q('#maze-key-status').textContent, /Llave conseguida/);
+  for (let i = 0; i < 4; i++) p.click('[data-move="down"]');
+  assert.equal(p.solved, 1);
+  assert.equal(p.run.finalObject, 'Pluma');
 });
 
 test('guardián: dos errores activan memoria y luego habilitan la contraseña', t => {
-  const p = setup(t, 5); p.run.lightest = 'Pluma';
+  const p = setup(t, 5); p.run.finalObject = 'Pluma';
   p.submit('#guardian-answer'); p.submit('#guardian-answer');
   assert.equal(p.errors, 2); assert.equal(p.run.puzzles[5].penalty, true);
   p.click('#sequence-play'); p.advance(3500);

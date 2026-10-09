@@ -33,20 +33,20 @@ export const STATIONS = [
     hints: ['Revisá lo que viste en el reloj y en las puertas.', 'La puerta que se abrió era azul. La frase que dice roja es falsa.']
   },
   {
-    title: 'La balanza', marker: 5, kind: 'balance', subtitle: 'Ordená los objetos por peso.',
+    title: 'El laberinto', marker: 5, kind: 'maze', subtitle: 'Agarrá la llave y encontrá la salida.',
     location: 'Quinto punto',
-    intro: 'Tenés tres comparaciones para ordenar los objetos de menor a mayor peso. Si el orden es incorrecto, los pesos cambian y empezás de nuevo.',
+    intro: 'Mové la ficha con las flechas. Primero agarrá la llave dorada y después llegá a la salida verde. Las casillas con × te devuelven al inicio sin la llave y restan 20 puntos.',
     evidence: '',
     next: 'Buscá el marcador 06.',
-    hints: ['Compará dos objetos y después compará el más liviano con el tercero.', 'Con tres pesadas podés comparar todas las parejas. Fijate cuál pesa menos que los otros dos.']
+    hints: ['Buscá un camino hasta la llave antes de pensar en la salida. Las paredes no restan puntos.', 'Evitá las casillas rojas: no son atajos. Si un camino se corta, retrocedé y probá por otro lado.']
   },
   {
     title: 'El guardián', marker: 6, kind: 'guardian', subtitle: 'Completá la contraseña.',
     location: 'Sexto punto',
-    intro: 'Ingresá la hora del reloj, el símbolo de la puerta y el objeto más liviano. Cada dos errores tenés que repetir una secuencia antes de volver a probar.',
+    intro: 'Ingresá la hora del reloj, el símbolo de la puerta y el objeto que dice tu última pista. Cada dos errores tenés que repetir una secuencia antes de volver a probar.',
     evidence: 'La contraseña abrió la puerta.',
     next: 'Entrá a la habitación.',
-    hints: ['Las respuestas están en las pistas del reloj, las puertas y la balanza.', 'Usá 7, el rombo y el primer objeto del orden que guardaste en la balanza.']
+    hints: ['Revisá las pistas del reloj, las puertas y el marcador 05.', 'Usá 7, el rombo y el objeto que figura en tu última pista como «Objeto para el guardián».']
   },
   {
     title: 'La habitación vacía', marker: 6, kind: 'room', subtitle: 'El cofre no está acá.',

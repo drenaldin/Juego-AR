@@ -92,7 +92,29 @@ test('almacenamiento bloqueado y datos inválidos no rompen el juego', () => {
   assert.equal(Object.keys(readStore({ getItem: () => JSON.stringify({ version: 1, runs: { invalid: {} }, records: [] }) }).data.runs).length, 0);
 });
 
-test('contraseña combina la evidencia fija y el resultado variable de la balanza', () => {
+test('las partidas que completaron la balanza conservan su contraseña y puntaje', () => {
+  const run = createRun('Veterano', false, 1000);
+  delete run.finalObject;
+  Object.assign(run, {
+    stage: 5, solved: [0, 1, 2, 3, 4], unlocked: [0, 1, 2, 3, 4],
+    lightest: 'Pluma', errors: 2, hints: 1,
+    evidence: [{ stage: 4, text: 'El objeto más liviano es Pluma.' }]
+  });
+  const store = emptyStore(), key = runKey(run.name, false);
+  store.runs[key] = run;
+  let stored = JSON.stringify(store);
+  const storage = { getItem: () => stored, setItem: (_, value) => { stored = value; } };
+  const migrated = readStore(storage).data;
+  assert.equal(migrated.runs[key].finalObject, 'Pluma');
+  assert.equal(migrated.runs[key].stage, 5);
+  assert.equal(scoreRun(migrated.runs[key]), scoreRun(run));
+  assert.equal(guardianCorrect('7', 'diamond', 'Pluma', migrated.runs[key].finalObject), true);
+  assert.match(migrated.runs[key].evidence[0].text, /Objeto para el guardián: Pluma/);
+  writeStore(storage, migrated);
+  assert.deepEqual(readStore(storage).data, migrated, 'La pista no se agrega dos veces al recargar');
+});
+
+test('contraseña combina la evidencia fija y el objeto obtenido en el laberinto', () => {
   assert.equal(guardianCorrect('7', 'diamond', 'Pluma', 'Pluma'), true);
   assert.equal(guardianCorrect('7', 'circle', 'Pluma', 'Pluma'), false);
   assert.equal(guardianCorrect('7', 'diamond', 'Llave', 'Pluma'), false);

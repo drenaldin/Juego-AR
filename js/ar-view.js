@@ -59,7 +59,6 @@ window.addEventListener('message', event => {
       door?.setAttribute('scale', value.on ? '1 1.35 1' : '1 1 1');
       door?.setAttribute('material', 'emissive', value.on ? '#777777' : '#000000');
     }
-    if (effect === 'balance') q('#ar-balance-beam')?.setAttribute('rotation', `0 0 ${value}`);
   }
 });
 

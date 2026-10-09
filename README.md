@@ -20,6 +20,10 @@ Para probar sin cámara, ingresar un apodo y elegir **Probar sin cámara**. Los 
 
 Al reconocer el marcador correcto, la cámara se apaga y el juego muestra directamente la actividad. Al resolverla aparece la opción de escanear el siguiente marcador; la cámara se enciende solo al tocar el botón. La nota que sigue al guardián se abre sin repetir el escaneo del marcador 06. Las pistas y el progreso se guardan automáticamente, y una actividad ya desbloqueada se puede retomar sin cámara.
 
+## Marcador 05: el laberinto
+
+Mové la ficha con las flechas, agarrá la llave y llegá a la salida. Las trampas te devuelven al inicio sin la llave y restan 20 puntos; las paredes no penalizan. Al ganar se guarda el objeto que te pedirá el guardián. El mismo marcador 05 impreso sigue funcionando.
+
 ## Puntajes
 
 Cada una de las primeras seis pruebas suma 100 puntos y el cofre suma 400. Un error resta 20; una ayuda, 50. Al terminar se agrega un bono de `max(0, 300 - floor(segundos / 10))`. El total nunca baja de cero.
