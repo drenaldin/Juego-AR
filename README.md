@@ -34,7 +34,9 @@ No hace falta compilar. La carpeta `node_modules` no se sube. Las ubicaciones de
 
 ## Archivos
 
-- `index.html`: pantallas y escena AR.
+- `index.html`: inicio, juego, instrucciones y puntajes.
+- `ar.html`, `js/ar-view.js` y `css/ar-view.css`: escena AR aislada dentro del visor.
+- `js/camera.js`: encuadre, comunicación con el visor y apagado de la cámara.
 - `css/style.css`: estilos.
 - `js/game.js`: cámara, navegación y mensajes.
 - `js/engine.js`: progreso, guardado y puntajes.

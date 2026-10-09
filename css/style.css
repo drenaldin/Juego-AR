@@ -46,6 +46,7 @@ h2 { font-size: 30px; line-height: 1.25; margin: 0 0 18px; }
 h3 { font-size: 18px; line-height: 1.4; margin: 0 0 16px; }
 p { margin: 0 0 16px; }
 .dashboard-layout { display: grid; grid-template-columns: minmax(0, 1fr) 350px; align-items: start; gap: 40px; padding: 36px 0; }
+.dashboard-layout.is-playing { grid-template-columns: minmax(0, 1fr); }
 .main-panel { min-width: 0; }
 .home-view { max-width: 680px; padding: 26px 0 40px; }
 .help-section { max-width: 680px; border-top: 1px solid var(--line); padding: 28px 0 8px; }
@@ -136,9 +137,10 @@ td:nth-child(3) { font-weight: 700; color: var(--green); }
 .progress-track li.current { border-color: var(--red); color: var(--red); }
 .progress-track li.done { border-color: var(--green); color: var(--green); }
 .play-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: start; }
-.scanner-pane { min-height: 440px; background: #26332c; color: white; border-radius: 6px; display: flex; flex-direction: column; position: relative; isolation: isolate; overflow: hidden; }
+.scanner-pane { min-height: 0; background: #26332c; color: white; border-radius: 6px; display: flex; flex-direction: column; position: relative; isolation: isolate; overflow: hidden; }
 .scanner-top { padding: 16px 20px; font-size: 13px; }
-.scanner-target { flex: 1; min-height: 240px; margin: 15px 42px; position: relative; display: grid; place-items: center; text-align: center; }
+.scanner-viewport { position: relative; width: 100%; aspect-ratio: 4 / 3; max-height: 360px; overflow: hidden; background: #142019; }
+.scanner-target { position: absolute; inset: 16px 28px; display: grid; place-items: center; text-align: center; }
 .target-corner { position: absolute; width: 24px; height: 24px; border-color: #aebdad; border-style: solid; }
 .tl { top: 0; left: 0; border-width: 1px 0 0 1px; }
 .tr { top: 0; right: 0; border-width: 1px 1px 0 0; }
@@ -208,19 +210,9 @@ dialog .text-button { display: block; margin: 10px auto 0; }
 #result-name { font-weight: 600; }
 #result-save { font-size: 13px; color: var(--muted); }
 
-#ar-container { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
-#ar-container a-scene { position: absolute !important; inset: 0 !important; width: 100% !important; height: 100% !important; }
-#ar-container canvas { width: 100% !important; height: 100% !important; }
-body.ar-active { background: transparent; }
-body.ar-active .site-header, body.ar-active .game-topline,
-body.ar-active .progress-track, body.ar-active .site-footer, body.ar-active .sidebar, body.ar-active .help-section { background: var(--paper); }
-body.ar-active .scanner-pane { background: transparent; text-shadow: 0 1px 5px #000; color: white; }
-body.ar-active #scan-placeholder { opacity: 0; }
-body.ar-active .scanner-top, body.ar-active .scanner-bottom { background: #26332ccc; }
-body.ar-active .target-corner { border-color: white; }
-body:not(.ar-active) #ar-container { visibility: hidden; }
-body:not(.ar-active) #arjs-video { visibility: hidden !important; }
-body.ar-active #arjs-video { z-index: -1 !important; }
+#ar-container { position: absolute; inset: 0; z-index: 1; overflow: hidden; }
+.ar-frame { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); border: 0; display: block; pointer-events: none; }
+.scanner-viewport.camera-active .scanner-target { visibility: hidden; }
 
 @media (max-width: 1150px) {
   .dashboard-layout { grid-template-columns: minmax(0, 1fr) 320px; gap: 28px; }
@@ -250,8 +242,8 @@ body.ar-active #arjs-video { z-index: -1 !important; }
   .scorebar span { font-size: 11px; }
   .scorebar b { font-size: 22px; }
   .play-grid { grid-template-columns: 1fr; gap: 18px; }
-  .scanner-pane { min-height: 285px; }
-  .scanner-target { min-height: 130px; margin: 5px 48px; }
+  .scanner-viewport { max-height: min(360px, 48svh); }
+  .scanner-target { inset: 12px 24px; }
   .scan-glyph { font-size: 38px; }
   .scanner-target p { font-size: 13px; margin-bottom: 10px; }
   .scanner-top { padding: 12px 16px; }
@@ -261,6 +253,4 @@ body.ar-active #arjs-video { z-index: -1 !important; }
   .table-wrap { margin-inline: -8px; }
   th, td { padding: 13px 10px; }
   dialog { padding: 28px 20px; }
-  body.ar-active .scanner-pane { min-height: 340px; }
-  body.ar-active .scanner-target { min-height: 190px; }
 }

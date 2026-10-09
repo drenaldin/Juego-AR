@@ -1,0 +1,25 @@
+/* Este documento vive únicamente dentro del recuadro de la cámara. */
+html, body {
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  background: transparent;
+}
+a-scene {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+a-scene canvas {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+}
+/* El iframe adopta la proporción real del video: no se recorta ni se estira. */
+#arjs-video { z-index: -1 !important; }
+.a-enter-vr, .a-enter-ar, .a-orientation-modal, #arjsDebugUIContainer { display: none !important; }

@@ -1,6 +1,7 @@
 import { STATIONS } from './story.js';
 import { createRun, cleanName, runKey, elapsedSeconds, scoreRun, unlockMarker, finishStage, useHint, readStore, writeStore, recordResult, leaderboard } from './engine.js';
 import { mountPuzzle } from './puzzles.js';
+import { createCamera } from './camera.js';
 
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
@@ -13,10 +14,24 @@ let cleanupPuzzle = () => {};
 let mountedStage = null;
 let currentView = 'home';
 let cameraState = 'off';
-let scene = null;
 let cameraTimeout;
 let writeOK = true;
 const visibleMarkers = new Set();
+const camera = createCamera({
+  container: $('#ar-container'),
+  onReady() {
+    if (currentView !== 'play' || run?.practice) { stopCamera(); return; }
+    clearTimeout(cameraTimeout); cameraState = 'ready';
+    $('.scanner-viewport').classList.add('camera-active');
+    renderGame();
+  },
+  onError: cameraError,
+  onFound(marker) {
+    visibleMarkers.add(marker);
+    if (!run?.practice) scanMarker(marker);
+  },
+  onLost(marker) { visibleMarkers.delete(marker); }
+});
 const formatTime = seconds => `${Math.floor(seconds / 60).toString().padStart(2, '0')}:${(seconds % 60).toString().padStart(2, '0')}`;
 
 function warning(text) { $('#storage-warning').textContent = text; $('#storage-warning').hidden = !text; }
@@ -36,10 +51,11 @@ function feedback(text, success = false) {
 function cleanup() { cleanupPuzzle(); cleanupPuzzle = () => {}; mountedStage = null; }
 
 function showView(view) {
-  if (currentView === 'play' && view !== 'play') { cleanup(); save(); }
+  if (currentView === 'play' && view !== 'play') { stopCamera(); cleanup(); save(); }
   currentView = view;
   $$('.view').forEach(el => el.hidden = el.id !== `${view}-view`);
-  document.body.classList.toggle('ar-active', view === 'play' && cameraState === 'ready' && !run?.practice);
+  $('.sidebar').hidden = view === 'play';
+  $('#main').classList.toggle('is-playing', view === 'play');
   renderRanking();
   if (view === 'play') renderGame();
   window.scrollTo({ top: 0 });
@@ -71,38 +87,23 @@ function renderNotebook() {
     p.append(b, document.createTextNode(e.text)); return p;
   });
   if (!items.length) {
-    const p = document.createElement('p'); p.textContent = 'Todavía no encontraste pistas.'; items.push(p);
+    const p = document.createElement('p');
+    p.textContent = run.unlocked.includes(run.stage)
+      ? 'Ya reconocimos el marcador. Resolvé la prueba de arriba para guardar tu primera pista acá.'
+      : run.practice
+        ? 'Para conseguir tu primera pista, tocá 01 en los botones del escáner y resolvé la prueba que se desbloquea.'
+        : 'Tu primera pista se guarda acá al resolver una prueba. Activá la cámara, enfocá el marcador 01 impreso y seguí la consigna que se desbloquea arriba.';
+    items.push(p);
   }
   $('#evidence-list').replaceChildren(...items);
 }
 
 function updateARObjects() {
-  if (!scene || !run) return;
-  $('#ar-key')?.setAttribute('visible', run.stage < 7);
-  $('#ar-chest')?.setAttribute('visible', run.stage >= 7);
-  $('#ar-guardian')?.setAttribute('visible', run.stage < 6);
-  $('#ar-room')?.setAttribute('visible', run.stage >= 6);
-  if (run.finishedAt) {
-    $('#ar-lid')?.setAttribute('rotation', '-65 0 0');
-    $('#ar-lid')?.setAttribute('position', '0 .5 -.22');
-    $('#ar-treasure')?.setAttribute('visible', true);
-  } else {
-    $('#ar-lid')?.setAttribute('rotation', '0 0 0');
-    $('#ar-lid')?.setAttribute('position', '0 .25 0');
-    $('#ar-treasure')?.setAttribute('visible', false);
-  }
+  if (run && cameraState === 'ready') camera.setState(run.stage, Boolean(run.finishedAt));
 }
 
 function arEffect(type, value) {
-  if (!scene) return;
-  if (type === 'clock') $('#ar-clock-hand')?.setAttribute('rotation', `0 ${-value * 30} 0`);
-  if (type === 'signal') $('#ar-clock-light')?.setAttribute('color', value ? '#ff432b' : '#d2a146');
-  if (type === 'door') {
-    const door = scene.querySelector(`[data-door="${value.index}"]`);
-    door?.setAttribute('scale', value.on ? '1 1.35 1' : '1 1 1');
-    door?.setAttribute('material', 'emissive', value.on ? '#777777' : '#000000');
-  }
-  if (type === 'balance') $('#ar-balance-beam')?.setAttribute('rotation', `0 0 ${value}`);
+  if (cameraState === 'ready') camera.effect(type, value);
 }
 
 function renderGame() {
@@ -117,8 +118,10 @@ function renderGame() {
   $('#scan-instruction').textContent = run.finishedAt ? 'El cofre está abierto.' : `Apuntá al marcador ${String(station.marker).padStart(2, '0')}`;
   $('#scanner-caption').textContent = run.practice ? 'Práctica sin cámara' : 'Cámara';
   $('#camera-start').hidden = run.practice || cameraState === 'ready';
+  $('#camera-start').disabled = cameraState === 'loading';
+  $('#camera-stop').hidden = run.practice || cameraState !== 'ready';
   $('#practice-controls').hidden = !run.practice || Boolean(run.finishedAt);
-  $('#camera-status').textContent = run.practice ? 'Los escaneos se simulan con los botones de abajo.' : cameraState === 'ready' ? 'Buscá el borde negro completo del marcador.' : 'Activá la cámara para reconocer los marcadores.';
+  $('#camera-status').textContent = run.practice ? 'Los escaneos se simulan con los botones de abajo.' : cameraState === 'ready' ? 'Enfocá el marcador completo dentro del visor.' : cameraState === 'loading' ? 'Cargando la cámara… Permití su uso cuando el navegador lo solicite.' : 'Activá la cámara para reconocer los marcadores.';
   $('#progress-track').replaceChildren(...STATIONS.map((s, i) => {
     const li = document.createElement('li'); li.textContent = String(i + 1).padStart(2, '0');
     li.title = s.title; li.className = i < run.stage || run.finishedAt ? 'done' : i === run.stage ? 'current' : '';
@@ -208,62 +211,42 @@ function showResult() {
   if (!$('#result-dialog').open) $('#result-dialog').showModal();
 }
 
-function loadScript(src, check) {
-  if (check()) return Promise.resolve();
-  return new Promise((resolve, reject) => {
-    const script = document.createElement('script'); script.src = src;
-    const timeout = setTimeout(() => { script.remove(); reject(new Error('La descarga tardó demasiado. Revisá tu conexión.')); }, 25000);
-    script.onload = () => { clearTimeout(timeout); if (check()) resolve(); else reject(new Error('No se pudo inicializar la biblioteca AR.')); };
-    script.onerror = () => { clearTimeout(timeout); script.remove(); reject(new Error('No se pudieron descargar las bibliotecas AR. Revisá tu conexión.')); };
-    document.head.append(script);
-  });
+function stopCamera() {
+  clearTimeout(cameraTimeout);
+  camera.stop(); cameraState = 'off'; visibleMarkers.clear();
+  $('.scanner-viewport').classList.remove('camera-active');
+  $('#camera-start').disabled = false;
+  $('#camera-start').textContent = 'Activar cámara';
+  $('#camera-stop').hidden = true;
 }
 
-async function startCamera() {
-  if (cameraState === 'loading' || cameraState === 'ready') return;
-  if (cameraState === 'error' && scene) { window.location.reload(); return; }
+function startCamera() {
+  if (currentView !== 'play' || run?.practice || cameraState === 'loading' || cameraState === 'ready') return;
   if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
-    $('#camera-status').textContent = 'La cámara requiere HTTPS o localhost y un navegador compatible. También podés usar el modo práctica.'; return;
+    cameraError('La cámara requiere HTTPS o localhost y un navegador compatible. También podés usar el modo práctica.'); return;
   }
-  cameraState = 'loading'; $('#camera-start').disabled = true;
-  $('#camera-status').textContent = 'Cargando el visor AR… Permití el acceso cuando el navegador lo solicite.';
+  stopCamera(); cameraState = 'loading';
+  $('#camera-start').disabled = true;
+  $('#camera-status').textContent = 'Cargando la cámara… Permití su uso cuando el navegador lo solicite.';
   try {
-    await loadScript('https://aframe.io/releases/1.8.0/aframe.min.js', () => Boolean(window.AFRAME));
-    await loadScript('https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.8/aframe/build/aframe-ar.js', () => Boolean(window.AFRAME?.systems?.arjs));
-    $('#ar-container').append($('#ar-template').content.cloneNode(true));
-    scene = $('#ar-container a-scene');
-    scene.querySelectorAll('a-marker').forEach(marker => {
-      marker.addEventListener('markerFound', () => {
-        const id = Number(marker.dataset.marker); visibleMarkers.add(id);
-        if (!run?.practice) scanMarker(id);
-      });
-      marker.addEventListener('markerLost', () => visibleMarkers.delete(Number(marker.dataset.marker)));
-    });
-    updateARObjects();
+    camera.start();
     cameraTimeout = setTimeout(() => {
       if (cameraState === 'loading') cameraError('La cámara todavía no respondió. Revisá sus permisos y reintentá.');
-    }, 40000);
-  } catch (error) { cameraError(error.message); }
+    }, 45000);
+  } catch { cameraError('No pudimos abrir el visor. Volvé a intentarlo.'); }
 }
 
 function cameraError(message) {
-  clearTimeout(cameraTimeout); cameraState = 'error';
-  document.body.classList.remove('ar-active');
+  stopCamera(); cameraState = 'error';
   $('#camera-status').textContent = message;
-  $('#camera-start').disabled = false; $('#camera-start').hidden = Boolean(run?.practice);
-  $('#camera-start').textContent = scene ? 'Recargar y reintentar' : 'Reintentar cámara';
+  $('#camera-start').hidden = Boolean(run?.practice);
+  $('#camera-start').textContent = 'Reintentar cámara';
 }
-
-window.addEventListener('camera-init', () => {
-  clearTimeout(cameraTimeout); cameraState = 'ready';
-  $('#camera-start').hidden = true; $('#camera-start').disabled = false;
-  if (currentView === 'play') { document.body.classList.toggle('ar-active', !run?.practice); renderGame(); }
-});
-window.addEventListener('camera-error', () => cameraError('No pudimos abrir la cámara. Permití su uso en el navegador, cerrá otras apps que la utilicen y reintentá.'));
 
 $('#start-form').addEventListener('submit', event => { event.preventDefault(); start(false); });
 $('#practice-start').addEventListener('click', () => start(true));
 $('#camera-start').addEventListener('click', startCamera);
+$('#camera-stop').addEventListener('click', () => { stopCamera(); renderGame(); });
 $('#leave-game').addEventListener('click', () => showView('home'));
 $('#hint-button').addEventListener('click', () => {
   if (useHint(run, STATIONS[run.stage].hints.length)) { save(); updateStats(); renderHints(); }
@@ -281,7 +264,7 @@ for (let marker = 1; marker <= 6; marker++) {
   button.addEventListener('click', () => { if (run?.practice) scanMarker(marker); });
   $('#practice-markers').append(button);
 }
-window.addEventListener('pagehide', save);
+window.addEventListener('pagehide', () => { save(); stopCamera(); });
 document.addEventListener('visibilitychange', () => {
   if (document.hidden && currentView === 'play') { cleanup(); save(); }
   if (!document.hidden && currentView === 'play') renderGame();
