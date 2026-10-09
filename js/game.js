@@ -1,7 +1,7 @@
-import { STATIONS } from './story.js?v=4';
-import { createRun, cleanName, runKey, elapsedSeconds, scoreRun, unlockMarker, finishStage, useHint, readStore, writeStore, recordResult, leaderboard } from './engine.js?v=4';
-import { mountPuzzle } from './puzzles.js?v=4';
-import { createCamera } from './camera.js?v=4';
+import { STATIONS } from './story.js?v=5';
+import { createRun, cleanName, runKey, elapsedSeconds, scoreRun, unlockMarker, finishStage, useHint, readStore, writeStore, recordResult, leaderboard } from './engine.js?v=5';
+import { mountPuzzle } from './puzzles.js?v=5';
+import { createCamera } from './camera.js?v=5';
 
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
@@ -53,6 +53,9 @@ function showView(view) {
   currentView = view;
   $$('.view').forEach(el => el.hidden = el.id !== `${view}-view`);
   $('.sidebar').hidden = view === 'play';
+  $$('#help-panel [data-guide-text]').forEach(el => el.hidden = view === 'play');
+  $('#help-panel').setAttribute('aria-label', view === 'play' ? 'Esquema del recorrido' : 'Cómo jugar');
+  document.body.classList.toggle('is-playing', view === 'play');
   $('#main').classList.toggle('is-playing', view === 'play');
   renderRanking();
   if (view === 'play') renderGame();
@@ -121,7 +124,7 @@ function renderGame() {
   const activityOpen = unlocked || Boolean(run.finishedAt);
   $('.scanner-pane').hidden = activityOpen;
   $('.play-grid').classList.toggle('activity-open', activityOpen);
-  $('#player-label').textContent = `Jugador: ${run.name}`;
+  $('#player-label').textContent = `Pirata: ${run.name}`;
   $('#mode-label').textContent = run.practice ? 'Práctica' : 'Con cámara';
   $('#station-number').textContent = `Etapa ${run.stage + 1} de 8 · Marcador ${station.marker}`;
   $('#station-title').textContent = station.title;
@@ -145,7 +148,7 @@ function renderGame() {
   const previous = run.stage > 0 ? STATIONS[run.stage - 1].next : 'Encontrá el primer cartel del recorrido.';
   $('#locked-message').textContent = `${previous} Escaneá el marcador ${String(station.marker).padStart(2, '0')} para abrir esta prueba.`;
   if (run.finishedAt) {
-    cleanup(); $('#puzzle').innerHTML = '<p class="notice">Ya completaste el juego.</p><button id="show-result" class="primary">Ver resultado</button>';
+    cleanup(); $('#puzzle').innerHTML = '<p class="notice">El cofre del capitán ya es tuyo.</p><button id="show-result" class="primary">Ver resultado</button>';
     $('#show-result').onclick = showResult; return;
   }
   if (unlocked && mountedStage !== run.stage) {

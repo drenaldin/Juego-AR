@@ -1,6 +1,6 @@
-# La habitación que no existe
+# El botín del capitán
 
-Búsqueda del tesoro con AR.js y A-Frame. Hay seis marcadores y ocho etapas: se resuelven las pruebas, se abre la habitación y se vuelve al primer marcador para encontrar el cofre.
+Aventura pirata de búsqueda del tesoro con AR.js y A-Frame. Hay seis marcadores y ocho etapas: se resuelven las pruebas, se entra al camarote y se vuelve al primer marcador para encontrar el cofre.
 
 ## Ejecutar
 
@@ -19,6 +19,8 @@ Para probar sin cámara, ingresar un apodo y elegir **Probar sin cámara**. Los 
 - Probar los marcadores con los celulares que se van a usar.
 
 Al reconocer el marcador correcto, la cámara se apaga y el juego muestra directamente la actividad. Al resolverla aparece la opción de escanear el siguiente marcador; la cámara se enciende solo al tocar el botón. La nota que sigue al guardián se abre sin repetir el escaneo del marcador 06. Las pistas y el progreso se guardan automáticamente, y una actividad ya desbloqueada se puede retomar sin cámara.
+
+La guía completa se muestra en el inicio. Durante la partida queda únicamente la imagen del recorrido; las consignas y las pistas de cada prueba siguen disponibles.
 
 ## Marcador 05: el laberinto
 

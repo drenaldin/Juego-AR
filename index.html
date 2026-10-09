@@ -3,29 +3,30 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#f5f3ee">
+  <meta name="theme-color" content="#153b43">
   <meta name="description" content="Encontrá los seis marcadores, resolvé las pistas y abrí el cofre.">
-  <title>La habitación que no existe</title>
-  <link rel="icon" type="image/svg+xml" href="./assets/favicon.svg">
-  <link rel="stylesheet" href="./css/style.css?v=4">
-  <script type="module" src="./js/game.js?v=4"></script>
+  <title>El botín del capitán</title>
+  <link rel="icon" type="image/svg+xml" href="./assets/favicon.svg?v=5">
+  <link rel="stylesheet" href="./css/style.css?v=5">
+  <script type="module" src="./js/game.js?v=5"></script>
 </head>
 <body>
   <a class="skip" href="#main">Ir al contenido</a>
   <div class="app-shell">
     <header class="site-header">
-      <a class="brand" href="./index.html">Búsqueda AR</a>
+      <a class="brand" href="./index.html"><img src="./assets/favicon.svg?v=5" width="38" height="38" alt="">El botín del capitán</a><span class="header-motto" aria-hidden="true">Sin mapa. Sin miedo.</span>
     </header>
 
     <main id="main" class="dashboard-layout">
       <div class="main-panel">
         <section id="home-view" class="view home-view">
-          <h1>La habitación que no existe</h1>
-          <p class="home-description">Poné a prueba tu ingenio: seguí las pistas, resolvé los enigmas y encontrá el tesoro. ¿Aceptás el desafío?</p>
+          <p class="expedition-label">Una aventura pirata en realidad aumentada</p>
+          <div class="home-heading"><h1>El botín<br>del <em>capitán</em></h1><img class="pirate-map" src="./assets/images/carta-pirata.svg" width="360" height="300" alt=""></div>
+          <p class="home-description">El capitán escondió su botín y dejó seis pistas para encontrarlo. Hay trampas, un guardián desconfiado y un cofre que no se abre solo.</p>
           <form id="start-form" class="start-form">
-            <label for="player-name">Tu apodo</label>
+            <label for="player-name">Tu nombre pirata</label>
             <div class="input-row">
-              <input id="player-name" name="name" placeholder="Escribí tu nombre" maxlength="24" required autocomplete="nickname">
+              <input id="player-name" name="name" placeholder="Ej.: Barbanegra" maxlength="24" required autocomplete="nickname">
               <button type="submit" class="primary">Jugar</button>
             </div>
             <p class="form-note">Si ya empezaste, usá el mismo apodo para continuar.</p>
@@ -40,7 +41,7 @@
             <button id="leave-game" class="text-button">Guardar y salir</button>
           </div>
           <div class="scorebar">
-            <div><span>Puntos</span><b id="live-score">0</b></div>
+            <div><span>Botín · puntos</span><b id="live-score">0</b></div>
             <div><span>Tiempo</span><b id="live-time">00:00</b></div>
             <div><span>Errores</span><b id="live-errors">0</b></div>
             <div><span>Ayudas</span><b id="live-hints">0</b></div>
@@ -74,19 +75,19 @@
               <div id="hint-panel" class="hint-panel" hidden><div id="hint-text"></div><button id="hint-button" class="text-button">Pedir ayuda (−50 puntos)</button></div>
             </section>
           </div>
-          <section class="notebook"><h3>Pistas encontradas</h3><div id="evidence-list"></div></section>
+          <section class="notebook"><p class="expedition-label">Bitácora de a bordo</p><h3>Pistas encontradas</h3><div id="evidence-list"></div></section>
         </section>
 
-        <section id="help-panel" class="help-section" aria-labelledby="help-title">
-          <h2 id="help-title">Cómo jugar</h2>
-          <p>Jugás desde el navegador del celular, sin instalar nada. Buscá los carteles del recorrido: al enfocarlos con la cámara aparece un objeto en realidad aumentada y se desbloquea una prueba.</p>
+        <section id="help-panel" class="help-section" aria-label="Cómo jugar">
+          <h2 id="help-title" data-guide-text>Cómo jugar</h2>
+          <p data-guide-text>Jugás desde el navegador del celular, sin instalar nada. Buscá los carteles del recorrido: al enfocarlos con la cámara aparece un objeto en realidad aumentada y se desbloquea una prueba.</p>
 
           <figure class="game-loop">
             <img src="./assets/images/como-jugar.png" width="1254" height="1254" loading="lazy" decoding="async" alt="El recorrido se repite: 1, buscá un marcador; 2, escanealo con el celular; 3, resolvé la prueba; 4, seguí la pista hasta el próximo marcador. El objetivo final es encontrar el tesoro.">
-            <figcaption>Buscá → escaneá → resolvé → seguí la pista. Repetí hasta llegar al tesoro.</figcaption>
+            <figcaption data-guide-text>Buscá → escaneá → resolvé → seguí la pista. Repetí hasta llegar al tesoro.</figcaption>
           </figure>
 
-          <ol class="instructions help-steps">
+          <ol class="instructions help-steps" data-guide-text>
             <li>
               <h3>Elegí tu apodo y empezá</h3>
               <p>Tocá <strong>Jugar</strong>, después <strong>Activar cámara</strong> y aceptá el permiso del navegador. El tiempo empieza a contar al entrar a la partida, así que conviene estar cerca del primer marcador.</p>
@@ -109,7 +110,7 @@
             </li>
           </ol>
 
-          <div class="help-questions">
+          <div class="help-questions" data-guide-text>
             <details>
               <summary>¿Qué pasa si me equivoco o me trabo?</summary>
               <p>Podés volver a intentar. Cada error resta 20 puntos y algunas pruebas cambian o te hacen esperar unos segundos. <strong>Pedir ayuda</strong> revela una pista y resta 50 puntos por cada ayuda. Escanear un marcador fuera de orden no resta puntos.</p>
@@ -127,12 +128,13 @@
             </details>
           </div>
 
-          <p class="help-practice"><strong>¿Querés practicar primero?</strong> Escribí tu apodo y elegí <strong>Probar sin cámara</strong> en el inicio. Los botones 01–06 simulan el escaneo. Podés conocer las pruebas, pero esa partida no entra en la tabla de puntajes.</p>
-          <a class="help-markers" href="./markers/index.html" target="_blank" rel="noopener">Ver e imprimir los seis marcadores ↗</a>
+          <p class="help-practice" data-guide-text><strong>¿Querés practicar primero?</strong> Escribí tu apodo y elegí <strong>Probar sin cámara</strong> en el inicio. Los botones 01–06 simulan el escaneo. Podés conocer las pruebas, pero esa partida no entra en la tabla de puntajes.</p>
+          <a data-guide-text class="help-markers" href="./markers/index.html" target="_blank" rel="noopener">Ver e imprimir los seis marcadores ↗</a>
         </section>
       </div>
       <aside class="sidebar" aria-label="Puntajes">
         <section id="ranking-panel" class="sidebar-section" aria-labelledby="ranking-title">
+          <p class="expedition-label">La tripulación</p>
           <h2 id="ranking-title" tabindex="-1">Tabla de puntajes</h2>
           <p>La mejor partida de cada jugador, guardada en este navegador.</p>
           <div class="table-wrap">
@@ -153,12 +155,12 @@
 
       </aside>
     </main>
-    <footer class="site-footer">Juego de búsqueda del tesoro con AR.js y A-Frame.</footer>
+    <footer class="site-footer">Seis marcadores · Ocho etapas · Un tesoro</footer>
   </div>
   <p id="storage-warning" class="storage-warning" role="alert" hidden></p>
   <dialog id="result-dialog" aria-labelledby="result-title">
-    <h2 id="result-title">¡Encontraste el tesoro!</h2>
-    <p>Completaste las pruebas y abriste el cofre.</p>
+    <img class="result-emblem" src="./assets/favicon.svg?v=5" width="72" height="72" alt=""><h2 id="result-title">¡El botín es tuyo!</h2>
+    <p>El cofre está abierto. La tripulación tiene nuevo capitán.</p>
     <p id="result-name"></p><strong id="result-score" class="result-score"></strong>
     <p id="result-details"></p><p id="result-save"></p>
     <button id="result-ranking" class="primary">Ver puntajes</button>

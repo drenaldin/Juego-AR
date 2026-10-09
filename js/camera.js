@@ -57,7 +57,7 @@ export function createCamera({ container, onReady, onError, onFound, onLost }) {
       frame.title = 'Cámara para escanear los marcadores';
       frame.allow = 'camera; autoplay';
       frame.tabIndex = -1;
-      frame.src = new URL('../ar.html?v=4', import.meta.url).href;
+      frame.src = new URL('../ar.html?v=5', import.meta.url).href;
       window.addEventListener('message', receive);
       window.addEventListener('resize', fit);
       container.hidden = false;

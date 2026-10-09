@@ -1,6 +1,6 @@
-import { newSequence, shuffled, guardianCorrect } from './engine.js?v=4';
-import { DOORS, OBJECTS } from './story.js?v=4';
-import { MAZE_SIZE, MAZE_MAPS, createMaze, validMaze, mazeNeighbor, moveMaze } from './maze.js?v=4';
+import { newSequence, shuffled, guardianCorrect } from './engine.js?v=5';
+import { DOORS, OBJECTS } from './story.js?v=5';
+import { MAZE_SIZE, MAZE_MAPS, createMaze, validMaze, mazeNeighbor, moveMaze } from './maze.js?v=5';
 
 // Cada montaje devuelve su limpieza: salir de una pantalla cancela sus temporizadores.
 export function mountPuzzle(host, ctx) {
@@ -161,7 +161,7 @@ export function mountPuzzle(host, ctx) {
       }).join('');
       const row = Math.floor(state.cell / MAZE_SIZE) + 1, col = state.cell % MAZE_SIZE + 1;
       board.setAttribute('aria-label', `Laberinto de 7 filas y 7 columnas. Estás en la fila ${row}, columna ${col}. ${state.hasKey ? 'Tenés la llave: buscá la salida.' : 'Primero buscá la llave.'}`);
-      q('#maze-key-status').textContent = state.hasKey ? 'Llave conseguida. Ahora buscá la salida verde.' : 'Primero la llave dorada; después, la salida verde.';
+      q('#maze-key-status').textContent = state.hasKey ? 'Llave conseguida. Ahora buscá la salida verde.' : 'Buscá la llave dorada.';
       q('#maze-key-status').classList.toggle('has-key', state.hasKey);
       q('#maze-status').textContent = `Fila ${row} · Columna ${col}`;
       controls.forEach(control => control.disabled = state.won || mazeNeighbor(state, control.dataset.move) < 0);
@@ -171,7 +171,7 @@ export function mountPuzzle(host, ctx) {
       const result = moveMaze(state, direction);
       if (result === 'win') {
         run.finalObject = state.reward;
-        solve(`Saliste del laberinto. Objeto para el guardián: ${state.reward}.`);
+        solve(`Cruzaste la isla. Objeto para el guardián: ${state.reward}.`);
         return;
       }
       save(); draw();
@@ -207,7 +207,7 @@ export function mountPuzzle(host, ctx) {
   }
 
   function roomPuzzle() {
-    host.innerHTML = '<blockquote class="room-quote">Volvé al lugar donde encontraste la llave.</blockquote><p class="muted">Acá no está el cofre. Escaneá otra vez el primer marcador.</p><button class="primary" id="return-start">Volver al inicio del recorrido</button>';
+    host.innerHTML = '<blockquote class="room-quote">Volvé al lugar donde encontraste la llave.</blockquote><p class="muted">El camarote está vacío. El capitán te hizo dar la vuelta: escaneá otra vez el primer marcador.</p><button class="primary" id="return-start">Volver al inicio del recorrido</button>';
     button('#return-start', () => solve());
   }
 

@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 300" fill="none">
+  <path d="m22 34 60-14 64 8 72-13 112 23-5 72 14 63-16 107-94-11-62 10-69-14-74 13 7-104Z" fill="#b18b49" opacity=".18"/>
+  <path d="m16 25 60-14 64 8L212 6l112 23-5 72 14 63-16 107-94-11-62 10-69-14-74 13 7-104Z" fill="#f2dfac" stroke="#ad8648" stroke-width="2"/>
+  <path d="m33 42 39-9 73 8 63-12 93 16-8 55 15 64-12 82-74-8-65 12-63-15-57 9 6-78Z" stroke="#c5a76e" stroke-dasharray="3 5"/>
+  <g stroke="#789898" stroke-width="2" stroke-linecap="round" opacity=".7">
+    <path d="M52 75q7 6 14 0t14 0m-23 9q7 6 14 0m165 79q7 6 14 0t14 0m-23 9q7 6 14 0m-173 37q7 6 14 0t14 0"/>
+    <path d="M114 58q7 6 14 0t14 0m99 163q7 6 14 0t14 0m-77-155q7 6 14 0"/>
+  </g>
+  <path d="m151 83 27-15 33 20 9 30-16 22-37 3-32-20 1-23Z" fill="#c2c79a" stroke="#879575" stroke-width="2"/>
+  <path d="m153 122 22-32 19 30m-31-12 12-18 10 15" stroke="#798669" stroke-width="3" stroke-linejoin="round"/>
+  <path d="m214 187 32-12 28 15 8 24-21 24-37-5-17-25Z" fill="#c2c79a" stroke="#879575" stroke-width="2"/>
+  <path d="M84 167c-23-47 64-75 71-29 8 44-30 60 2 77 29 15 46-16 85-12" stroke="#a43f2d" stroke-width="3" stroke-dasharray="6 7" stroke-linecap="round"/>
+  <path d="m233 191 21 23m-1-24-23 24" stroke="#a43f2d" stroke-width="6" stroke-linecap="round"/>
+  <g transform="translate(56 127) rotate(-8 27 33)">
+    <path d="m0 43 61 1-14 17H14Z" fill="#74472b" stroke="#51331e" stroke-width="2"/>
+    <path d="M28 5v41" stroke="#51331e" stroke-width="3"/>
+    <path d="M32 9h25l-6 21H32Z" fill="#20363a"/>
+    <path d="m8 37 16-22v22Z" fill="#fff8df" stroke="#b4955c"/>
+    <circle cx="42" cy="16" r="4" fill="#fff1cb"/>
+    <path d="m37 22 11 4m-1-5-10 5" stroke="#fff1cb" stroke-width="2"/>
+  </g>
+  <g transform="translate(270 81)">
+    <circle r="26" stroke="#a1834c"/><circle r="20" stroke="#c5a76e"/>
+    <path d="M0-34 7-7 0 0-7 7ZM34 0 7 7 0 0-7-7ZM0 34-7 7 0 0 7-7ZM-34 0-7-7 0 0 7 7Z" fill="#254f57"/>
+    <path d="M0-34-7-7 0 0 7 7ZM34 0 7-7 0 0-7 7ZM0 34 7 7 0 0-7-7ZM-34 0-7 7 0 0 7-7Z" fill="#b99757"/>
+    <circle r="4" fill="#a43f2d"/>
+  </g>
+</svg>

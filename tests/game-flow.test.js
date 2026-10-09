@@ -80,7 +80,16 @@ async function setup(t, runs = []) {
 
 test('reconocer el marcador apaga la cámara y lleva a la actividad; el siguiente escaneo es manual', async t => {
   const p = await setup(t);
+  assert.equal(p.q('#help-title').hidden, false);
+  assert.equal(p.q('.help-questions').hidden, false);
   p.start('renitos');
+  assert.equal(p.q('#help-title').hidden, true);
+  assert.equal(p.q('.help-questions').hidden, true);
+  assert.equal(p.q('.help-markers').hidden, true);
+  assert.equal(p.q('.game-loop figcaption').hidden, true);
+  assert.deepEqual([...p.q('#help-panel').children].filter(el => !el.hidden).map(el => el.tagName), ['FIGURE']);
+  assert.equal(p.q('.game-loop img').closest('[hidden]'), null);
+  assert.ok(p.q('.game-loop img').getAttribute('src').endsWith('/como-jugar.png'));
   const scan = p.camera();
   scan(2);
   assert.ok(p.q('iframe'), 'Un marcador incorrecto permite seguir buscando');
@@ -105,6 +114,10 @@ test('reconocer el marcador apaga la cámara y lleva a la actividad; el siguient
   assert.equal(p.stopped, 2);
   assert.ok(p.q('#clock-play'));
   p.q('#leave-game').click();
+  assert.equal(p.q('#help-title').hidden, false);
+  assert.equal(p.q('.help-questions').hidden, false);
+  assert.equal(p.q('.help-markers').hidden, false);
+  assert.equal(p.q('.game-loop figcaption').hidden, false);
   p.start('renitos');
   assert.equal(p.q('.scanner-pane').hidden, true);
   assert.equal(p.q('iframe'), null);
@@ -138,6 +151,7 @@ test('guardián abre la nota sin otro escaneo y el cofre vuelve a pedir el marca
   assert.equal(p.q('#result-dialog').open, true);
   p.q('#result-ranking').click();
   assert.equal(p.q('.sidebar').hidden, false);
+  assert.equal(p.q('#help-title').hidden, false);
   assert.match(p.q('#ranking-body').textContent, /Finalista/);
 });
 
@@ -182,6 +196,8 @@ test('retomar la balanza abre el laberinto y su recompensa funciona con el guard
 test('práctica usa el mismo cambio entre escaneo y actividad sin abrir cámara', async t => {
   const p = await setup(t);
   p.start('Prueba', true);
+  assert.equal(p.q('.help-questions').hidden, true);
+  assert.equal(p.q('.game-loop img').closest('[hidden]'), null);
   p.q('#practice-markers button').click();
   assert.equal(p.q('.scanner-pane').hidden, true);
   assert.equal(p.q('iframe'), null);
