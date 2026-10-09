@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f5f3ee">
+  <meta name="description" content="Encontrá los seis marcadores, resolvé las pistas y abrí el cofre.">
+  <title>La habitación que no existe</title>
+  <link rel="icon" type="image/svg+xml" href="./assets/favicon.svg">
+  <link rel="stylesheet" href="./css/style.css">
+  <script type="module" src="./js/game.js"></script>
+</head>
+<body>
+  <a class="skip" href="#main">Ir al contenido</a>
+  <div id="ar-container" aria-hidden="true"></div>
+  <div class="app-shell">
+    <header class="site-header">
+      <a class="brand" href="./index.html">Búsqueda AR</a>
+    </header>
+
+    <main id="main" class="dashboard-layout">
+      <div class="main-panel">
+        <section id="home-view" class="view home-view">
+          <h1>La habitación que no existe</h1>
+          <p class="home-description">Poné a prueba tu ingenio: seguí las pistas, resolvé los enigmas y encontrá el tesoro. ¿Aceptás el desafío?</p>
+          <form id="start-form" class="start-form">
+            <label for="player-name">Tu apodo</label>
+            <div class="input-row">
+              <input id="player-name" name="name" placeholder="Escribí tu nombre" maxlength="24" required autocomplete="nickname">
+              <button type="submit" class="primary">Jugar</button>
+            </div>
+            <p class="form-note">Si ya empezaste, usá el mismo apodo para continuar.</p>
+            <button type="button" id="practice-start" class="text-button">Probar sin cámara</button>
+            <p id="start-error" class="error" role="alert"></p>
+          </form>
+        </section>
+
+        <section id="play-view" class="view" hidden>
+          <div class="game-topline">
+            <span id="player-label"></span><span id="mode-label" class="badge"></span>
+            <button id="leave-game" class="text-button">Guardar y salir</button>
+          </div>
+          <div class="scorebar">
+            <div><span>Puntos</span><b id="live-score">0</b></div>
+            <div><span>Tiempo</span><b id="live-time">00:00</b></div>
+            <div><span>Errores</span><b id="live-errors">0</b></div>
+            <div><span>Ayudas</span><b id="live-hints">0</b></div>
+          </div>
+          <ol id="progress-track" class="progress-track" aria-label="Etapas del juego"></ol>
+          <div class="play-grid">
+            <section class="scanner-pane">
+              <div class="scanner-top"><span id="scanner-caption">Cámara</span></div>
+              <div class="scanner-target">
+                <span class="target-corner tl"></span><span class="target-corner tr"></span>
+                <span class="target-corner bl"></span><span class="target-corner br"></span>
+                <div id="scan-placeholder"><span class="scan-glyph" aria-hidden="true">⌖</span><p id="scan-instruction"></p></div>
+              </div>
+              <div class="scanner-bottom">
+                <p id="camera-status" role="status">Activá la cámara para empezar.</p>
+                <button id="camera-start" class="secondary">Activar cámara</button>
+                <div id="practice-controls" hidden><p>Elegí un marcador para simular el escaneo.</p><div id="practice-markers" class="marker-buttons"></div></div>
+              </div>
+            </section>
+            <section class="puzzle-card" aria-labelledby="station-title">
+              <p class="eyebrow" id="station-number"></p>
+              <h2 id="station-title" tabindex="-1"></h2>
+              <p id="station-subtitle" class="subtitle"></p><p id="station-intro"></p>
+              <div id="locked-message" class="locked-message"></div>
+              <div id="puzzle"></div>
+              <p id="feedback" class="feedback" role="status" aria-live="polite"></p>
+              <div id="hint-panel" class="hint-panel" hidden><div id="hint-text"></div><button id="hint-button" class="text-button">Pedir ayuda (−50 puntos)</button></div>
+            </section>
+          </div>
+          <section class="notebook"><h3>Pistas encontradas</h3><div id="evidence-list"></div></section>
+        </section>
+
+        <section id="help-panel" class="help-section" aria-labelledby="help-title">
+          <h2 id="help-title">Cómo jugar</h2>
+          <p>Jugás desde el navegador del celular, sin instalar nada. Buscá los carteles del recorrido: al enfocarlos con la cámara aparece un objeto en realidad aumentada y se desbloquea una prueba.</p>
+
+          <figure class="game-loop">
+            <img src="./assets/images/como-jugar.png" width="1254" height="1254" loading="lazy" decoding="async" alt="El recorrido se repite: 1, buscá un marcador; 2, escanealo con el celular; 3, resolvé la prueba; 4, seguí la pista hasta el próximo marcador. El objetivo final es encontrar el tesoro.">
+            <figcaption>Buscá → escaneá → resolvé → seguí la pista. Repetí hasta llegar al tesoro.</figcaption>
+          </figure>
+
+          <ol class="instructions help-steps">
+            <li>
+              <h3>Elegí tu apodo y empezá</h3>
+              <p>Tocá <strong>Jugar</strong>, después <strong>Activar cámara</strong> y aceptá el permiso del navegador. El tiempo empieza a contar al entrar a la partida, así que conviene estar cerca del primer marcador.</p>
+            </li>
+            <li>
+              <h3>Enfocá el marcador 01</h3>
+              <p>Es el dibujo cuadrado en blanco y negro del cartel. Buscá buena luz, dejá visible todo el borde negro y mantené el celular quieto un momento. Cuando el juego lo reconozca, se abrirá la primera prueba.</p>
+            </li>
+            <li>
+              <h3>Resolvé la prueba en la pantalla</h3>
+              <p>Leé la consigna y usá los botones del juego. Hay pruebas de precisión, memoria y lógica. Una vez desbloqueada, podés bajar el celular para responder: la prueba queda abierta aunque dejes de apuntar al cartel.</p>
+            </li>
+            <li>
+              <h3>Guardá el dato y buscá la siguiente pista</h3>
+              <p>Lo que descubrís queda en <strong>Pistas encontradas</strong>, debajo de la prueba. Volvé a leerlo cuando lo necesites. Seguí la indicación del juego y escaneá el siguiente marcador; las etapas se completan en orden.</p>
+            </li>
+            <li>
+              <h3>Llegá al cofre</h3>
+              <p>Hay <strong>seis marcadores y ocho etapas</strong>: algunos carteles se usan más de una vez. Prestá atención a las últimas indicaciones. Al abrir el cofre vas a ver tu puntaje final y tu mejor partida quedará en la tabla.</p>
+            </li>
+          </ol>
+
+          <div class="help-questions">
+            <details>
+              <summary>¿Qué pasa si me equivoco o me trabo?</summary>
+              <p>Podés volver a intentar. Cada error resta 20 puntos y algunas pruebas cambian o te hacen esperar unos segundos. <strong>Pedir ayuda</strong> revela una pista y resta 50 puntos por cada ayuda. Escanear un marcador fuera de orden no resta puntos.</p>
+              <p>Las primeras seis pruebas suman 100 puntos cada una y abrir el cofre suma 400. Al terminar se agrega un bono de hasta 300 puntos según el tiempo: cuanto antes llegues, más conservás.</p>
+            </details>
+            <details>
+              <summary>¿Cómo sigo después y dónde queda mi puntaje?</summary>
+              <p>El progreso se guarda automáticamente. Podés usar <strong>Guardar y salir</strong> y volver con el mismo apodo, en el mismo navegador y dispositivo. El tiempo sigue contando mientras estás afuera.</p>
+              <p>La tabla guarda la mejor partida terminada de cada apodo en ese navegador. Para competir en la misma tabla, jueguen por turnos en el mismo dispositivo, cada uno con su apodo. Si borrás los datos del sitio, se borran las partidas y los puntajes.</p>
+            </details>
+            <details>
+              <summary>La cámara no reconoce el cartel, ¿qué hago?</summary>
+              <p>Alejá un poco el celular, evitá reflejos y no tapes el borde negro ni el margen blanco. Enfocá un solo marcador a la vez. Si la cámara no abre, revisá el permiso del sitio en el navegador y usá el enlace HTTPS del juego.</p>
+              <p>Para jugar en casa podés imprimir los marcadores o mostrarlos en otra pantalla y enfocarlos con el celular. La ilustración de arriba solo explica el recorrido; los marcadores para jugar están en el enlace de abajo.</p>
+            </details>
+          </div>
+
+          <p class="help-practice"><strong>¿Querés practicar primero?</strong> Escribí tu apodo y elegí <strong>Probar sin cámara</strong> en el inicio. Los botones 01–06 simulan el escaneo. Podés conocer las pruebas, pero esa partida no entra en la tabla de puntajes.</p>
+          <a class="help-markers" href="./markers/index.html" target="_blank" rel="noopener">Ver e imprimir los seis marcadores ↗</a>
+        </section>
+      </div>
+      <aside class="sidebar" aria-label="Puntajes">
+        <section id="ranking-panel" class="sidebar-section" aria-labelledby="ranking-title">
+          <h2 id="ranking-title" tabindex="-1">Tabla de puntajes</h2>
+          <p>La mejor partida de cada jugador, guardada en este navegador.</p>
+          <div class="table-wrap">
+            <table>
+              <caption class="sr-only">Puntajes de las partidas AR completadas en este navegador</caption>
+              <thead><tr><th scope="col">#</th><th scope="col">Jugador</th><th scope="col">Puntos</th><th scope="col">Tiempo</th></tr></thead>
+              <tbody id="ranking-body"></tbody>
+            </table>
+          </div>
+          <p id="ranking-empty" class="empty-state">Todavía no hay partidas terminadas.</p>
+          <details class="rules">
+            <summary>Cómo se cuentan los puntos</summary>
+            <p>Cada una de las primeras seis pruebas suma 100 puntos. Abrir el cofre suma 400. Cada error resta 20 y cada ayuda resta 50.</p>
+            <p>Al terminar se agrega un bono de hasta 300 puntos: baja un punto cada 10 segundos de partida, incluidas las pausas. El total nunca baja de cero. En caso de empate gana el menor tiempo.</p>
+            <p>Las partidas de práctica no entran en el tablero.</p>
+          </details>
+        </section>
+
+      </aside>
+    </main>
+    <footer class="site-footer">Juego de búsqueda del tesoro con AR.js y A-Frame.</footer>
+  </div>
+  <p id="storage-warning" class="storage-warning" role="alert" hidden></p>
+  <dialog id="result-dialog" aria-labelledby="result-title">
+    <h2 id="result-title">¡Encontraste el tesoro!</h2>
+    <p>Completaste las pruebas y abriste el cofre.</p>
+    <p id="result-name"></p><strong id="result-score" class="result-score"></strong>
+    <p id="result-details"></p><p id="result-save"></p>
+    <button id="result-ranking" class="primary">Ver puntajes</button>
+    <button id="result-close" class="text-button">Volver al juego</button>
+  </dialog>
+  <noscript>Activá JavaScript en tu navegador para jugar.</noscript>
+
+  <template id="ar-template">
+    <a-scene embedded vr-mode-ui="enabled: false" renderer="alpha: true; antialias: true; precision: mediump" arjs="sourceType: webcam; debugUIEnabled: false; trackingMethod: best; patternRatio: 0.5; cameraParametersUrl: ./assets/camera_para.dat;" loading-screen="enabled: false">
+      <a-entity light="type: ambient; intensity: 1.8"></a-entity><a-entity light="type: directional; intensity: 2" position="1 3 2"></a-entity>
+      <a-marker type="pattern" url="./assets/patterns/pista-1.patt" data-marker="1" emitevents="true" smooth="true">
+        <a-entity id="ar-key" position="0 .6 0" animation="property: rotation; to: 0 360 0; loop: true; dur: 4000; easing: linear"><a-torus color="#dfb769" radius=".2" radius-tubular=".055" position="0 .25 0"></a-torus><a-box color="#dfb769" width=".08" height=".45" depth=".08" position="0 -.08 0"></a-box><a-box color="#dfb769" width=".2" height=".07" depth=".08" position=".07 -.25 0"></a-box></a-entity>
+        <a-entity id="ar-chest" visible="false" position="0 .2 0"><a-box color="#57422a" width=".85" height=".4" depth=".55"></a-box><a-box id="ar-lid" color="#bd934b" width=".9" height=".13" depth=".6" position="0 .25 0"></a-box><a-octahedron id="ar-treasure" visible="false" color="#ffd675" radius=".23" position="0 .8 0" animation="property: rotation; to: 0 360 0; loop: true; dur: 4000"></a-octahedron></a-entity>
+      </a-marker>
+      <a-marker type="pattern" url="./assets/patterns/pista-2.patt" data-marker="2" emitevents="true" smooth="true"><a-cylinder color="#eee6d7" radius=".48" height=".08" position="0 .15 0"></a-cylinder><a-entity id="ar-clock-hand" position="0 .22 0"><a-box color="#b44834" width=".04" height=".035" depth=".4" position="0 0 -.18"></a-box></a-entity><a-sphere id="ar-clock-light" color="#d2a146" radius=".09" position="0 .35 0"></a-sphere></a-marker>
+      <a-marker type="pattern" url="./assets/patterns/pista-3.patt" data-marker="3" emitevents="true" smooth="true"><a-box data-door="0" color="#ba8429" position="-.6 .4 0" width=".25" height=".8" depth=".12"></a-box><a-box data-door="1" color="#b34835" position="-.2 .4 0" width=".25" height=".8" depth=".12"></a-box><a-box data-door="2" color="#426c9a" position=".2 .4 0" width=".25" height=".8" depth=".12"></a-box><a-box data-door="3" color="#527b66" position=".6 .4 0" width=".25" height=".8" depth=".12"></a-box></a-marker>
+      <a-marker type="pattern" url="./assets/patterns/pista-4.patt" data-marker="4" emitevents="true" smooth="true"><a-box color="#ede2cb" width=".8" height=".06" depth=".6" position="0 .15 0" rotation="0 12 0"></a-box><a-box color="#ede2cb" width=".8" height=".06" depth=".6" position="0 .24 0" rotation="0 -10 0"></a-box><a-box color="#b44834" width=".28" height=".07" depth=".16" position="0 .3 0"></a-box></a-marker>
+      <a-marker type="pattern" url="./assets/patterns/pista-5.patt" data-marker="5" emitevents="true" smooth="true"><a-cylinder color="#bc9957" radius=".05" height=".7" position="0 .35 0"></a-cylinder><a-box id="ar-balance-beam" color="#bc9957" width="1.1" height=".06" depth=".08" position="0 .7 0"></a-box><a-cylinder color="#bc9957" radius=".23" height=".04" position="-.43 .4 0"></a-cylinder><a-cylinder color="#bc9957" radius=".23" height=".04" position=".43 .4 0"></a-cylinder></a-marker>
+      <a-marker type="pattern" url="./assets/patterns/pista-6.patt" data-marker="6" emitevents="true" smooth="true"><a-entity id="ar-guardian"><a-octahedron color="#b44834" radius=".4" position="0 .65 0" animation="property: rotation; to: 0 360 0; loop: true; dur: 7000"></a-octahedron><a-torus color="#bd934b" radius=".55" radius-tubular=".025" position="0 .65 0"></a-torus></a-entity><a-entity id="ar-room" visible="false"><a-box color="#a8a491" width="1.2" height=".06" depth="1" position="0 .02 0"></a-box><a-box color="#787e70" width=".08" height="1.2" depth=".1" position="-.5 .6 -.3"></a-box><a-box color="#787e70" width=".08" height="1.2" depth=".1" position=".5 .6 -.3"></a-box><a-box color="#787e70" width="1.08" height=".08" depth=".1" position="0 1.2 -.3"></a-box><a-box color="#b6b09d" width=".3" height=".3" depth=".3" position="0 .18 0"></a-box></a-entity></a-marker>
+      <a-entity camera></a-entity>
+    </a-scene>
+  </template>
+</body>
+</html>
