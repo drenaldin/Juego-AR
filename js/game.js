@@ -16,21 +16,19 @@ let currentView = 'home';
 let cameraState = 'off';
 let cameraTimeout;
 let writeOK = true;
-const visibleMarkers = new Set();
 const camera = createCamera({
   container: $('#ar-container'),
   onReady() {
-    if (currentView !== 'play' || run?.practice) { stopCamera(); return; }
+    if (currentView !== 'play' || run?.practice || run?.finishedAt || run?.unlocked.includes(run.stage)) { stopCamera(); return; }
     clearTimeout(cameraTimeout); cameraState = 'ready';
     $('.scanner-viewport').classList.add('camera-active');
     renderGame();
   },
   onError: cameraError,
   onFound(marker) {
-    visibleMarkers.add(marker);
     if (!run?.practice) scanMarker(marker);
   },
-  onLost(marker) { visibleMarkers.delete(marker); }
+  onLost() {}
 });
 const formatTime = seconds => `${Math.floor(seconds / 60).toString().padStart(2, '0')}:${(seconds % 60).toString().padStart(2, '0')}`;
 
@@ -106,9 +104,23 @@ function arEffect(type, value) {
   if (cameraState === 'ready') camera.effect(type, value);
 }
 
+function focusActivity() {
+  $('#station-title').focus({ preventScroll: true });
+  $('.puzzle-card').scrollIntoView({ block: 'start', behavior: 'instant' });
+}
+
+function focusScanner() {
+  $('.scanner-pane').scrollIntoView({ block: 'start', behavior: 'instant' });
+  if (!run.practice) $('#camera-start').focus({ preventScroll: true });
+}
+
 function renderGame() {
   if (!run) return;
   const station = STATIONS[run.stage];
+  const unlocked = run.unlocked.includes(run.stage);
+  const activityOpen = unlocked || Boolean(run.finishedAt);
+  $('.scanner-pane').hidden = activityOpen;
+  $('.play-grid').classList.toggle('activity-open', activityOpen);
   $('#player-label').textContent = `Jugador: ${run.name}`;
   $('#mode-label').textContent = run.practice ? 'Práctica' : 'Con cámara';
   $('#station-number').textContent = `Etapa ${run.stage + 1} de 8 · Marcador ${station.marker}`;
@@ -117,8 +129,9 @@ function renderGame() {
   $('#station-intro').textContent = station.intro;
   $('#scan-instruction').textContent = run.finishedAt ? 'El cofre está abierto.' : `Apuntá al marcador ${String(station.marker).padStart(2, '0')}`;
   $('#scanner-caption').textContent = run.practice ? 'Práctica sin cámara' : 'Cámara';
-  $('#camera-start').hidden = run.practice || cameraState === 'ready';
+  $('#camera-start').hidden = run.practice || activityOpen || cameraState === 'ready';
   $('#camera-start').disabled = cameraState === 'loading';
+  $('#camera-start').textContent = cameraState === 'loading' ? 'Abriendo cámara…' : run.stage > 0 ? `Escanear marcador ${String(station.marker).padStart(2, '0')}` : 'Activar cámara';
   $('#camera-stop').hidden = run.practice || cameraState !== 'ready';
   $('#practice-controls').hidden = !run.practice || Boolean(run.finishedAt);
   $('#camera-status').textContent = run.practice ? 'Los escaneos se simulan con los botones de abajo.' : cameraState === 'ready' ? 'Enfocá el marcador completo dentro del visor.' : cameraState === 'loading' ? 'Cargando la cámara… Permití su uso cuando el navegador lo solicite.' : 'Activá la cámara para reconocer los marcadores.';
@@ -128,7 +141,6 @@ function renderGame() {
     if (i === run.stage && !run.finishedAt) li.setAttribute('aria-current', 'step'); return li;
   }));
   renderNotebook(); renderHints(); updateStats(); updateARObjects();
-  const unlocked = run.unlocked.includes(run.stage);
   $('#locked-message').hidden = unlocked || Boolean(run.finishedAt);
   const previous = run.stage > 0 ? STATIONS[run.stage - 1].next : 'Encontrá el primer cartel del recorrido.';
   $('#locked-message').textContent = `${previous} Escaneá el marcador ${String(station.marker).padStart(2, '0')} para abrir esta prueba.`;
@@ -146,25 +158,29 @@ function renderGame() {
       solve(evidence = station.evidence) {
         if (!stillActive() || !finishStage(run, evidence)) return;
         cleanup();
+        // El guardián y la nota pertenecen al mismo marcador: no hace falta volver a escanearlo.
+        if (!run.finishedAt && STATIONS[run.stage].marker === station.marker) unlockMarker(run, station.marker);
         if (run.finishedAt) { recordResult(store, run); renderRanking(); }
         save(); feedback('Prueba resuelta. Tu progreso está guardado.', true);
         renderGame();
         if (run.finishedAt) showResult();
-        else if (!run.practice && visibleMarkers.has(STATIONS[run.stage].marker)) scanMarker(STATIONS[run.stage].marker);
-        $('#station-title').focus({ preventScroll: true });
+        else if (run.unlocked.includes(run.stage)) focusActivity();
+        else focusScanner();
       }
     });
-  } else if (!unlocked) cleanup();
+  } else if (!unlocked) { cleanup(); $('#puzzle').replaceChildren(); }
 }
 
 function scanMarker(marker) {
-  if (!run || run.finishedAt || currentView !== 'play') return;
+  if (!run || run.finishedAt || currentView !== 'play' || run.unlocked.includes(run.stage)) return;
   if (!unlockMarker(run, marker)) {
     feedback(`El marcador ${String(marker).padStart(2, '0')} no corresponde a esta etapa. Buscá el ${String(STATIONS[run.stage].marker).padStart(2, '0')}. No perdiste puntos.`);
     return;
   }
-  save(); feedback(`Marcador ${String(marker).padStart(2, '0')} reconocido. Podés bajar el celular para resolver la prueba.`, true);
+  stopCamera();
+  save(); feedback(run.practice ? 'Actividad desbloqueada. Resolvé la prueba.' : `Marcador ${String(marker).padStart(2, '0')} reconocido. Cámara apagada: ya podés resolver la prueba.`, true);
   renderGame();
+  focusActivity();
 }
 
 function start(practice) {
@@ -176,7 +192,7 @@ function start(practice) {
   const existing = store.runs[runKey(name, practice)];
   run = existing && !existing.finishedAt ? existing : createRun(name, practice);
   save(); feedback(''); showView('play');
-  if (!practice && cameraState === 'ready' && visibleMarkers.has(STATIONS[run.stage].marker)) scanMarker(STATIONS[run.stage].marker);
+  if (run.unlocked.includes(run.stage)) focusActivity();
 }
 
 function renderRanking() {
@@ -213,7 +229,7 @@ function showResult() {
 
 function stopCamera() {
   clearTimeout(cameraTimeout);
-  camera.stop(); cameraState = 'off'; visibleMarkers.clear();
+  camera.stop(); cameraState = 'off';
   $('.scanner-viewport').classList.remove('camera-active');
   $('#camera-start').disabled = false;
   $('#camera-start').textContent = 'Activar cámara';
@@ -221,7 +237,7 @@ function stopCamera() {
 }
 
 function startCamera() {
-  if (currentView !== 'play' || run?.practice || cameraState === 'loading' || cameraState === 'ready') return;
+  if (currentView !== 'play' || run?.practice || run?.finishedAt || run?.unlocked.includes(run.stage) || cameraState === 'loading' || cameraState === 'ready') return;
   if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
     cameraError('La cámara requiere HTTPS o localhost y un navegador compatible. También podés usar el modo práctica.'); return;
   }

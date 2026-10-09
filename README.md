@@ -18,7 +18,7 @@ Para probar sin cámara, ingresar un apodo y elegir **Probar sin cámara**. Los 
 - Colocarlas en seis lugares y actualizar las indicaciones `next` en `js/story.js`.
 - Probar los marcadores con los celulares que se van a usar.
 
-Al reconocer un marcador se abre la prueba. Se puede bajar el celular para responder. Las pistas y el progreso se guardan automáticamente.
+Al reconocer el marcador correcto, la cámara se apaga y el juego muestra directamente la actividad. Al resolverla aparece la opción de escanear el siguiente marcador; la cámara se enciende solo al tocar el botón. La nota que sigue al guardián se abre sin repetir el escaneo del marcador 06. Las pistas y el progreso se guardan automáticamente, y una actividad ya desbloqueada se puede retomar sin cámara.
 
 ## Puntajes
 

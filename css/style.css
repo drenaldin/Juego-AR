@@ -137,6 +137,8 @@ td:nth-child(3) { font-weight: 700; color: var(--green); }
 .progress-track li.current { border-color: var(--red); color: var(--red); }
 .progress-track li.done { border-color: var(--green); color: var(--green); }
 .play-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: start; }
+.play-grid.activity-open { grid-template-columns: minmax(0, 1fr); max-width: 760px; }
+.scanner-pane, .puzzle-card { scroll-margin-top: 16px; }
 .scanner-pane { min-height: 0; background: #26332c; color: white; border-radius: 6px; display: flex; flex-direction: column; position: relative; isolation: isolate; overflow: hidden; }
 .scanner-top { padding: 16px 20px; font-size: 13px; }
 .scanner-viewport { position: relative; width: 100%; aspect-ratio: 4 / 3; max-height: 360px; overflow: hidden; background: #142019; }
